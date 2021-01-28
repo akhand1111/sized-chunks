@@ -5,8 +5,9 @@ rust:
     - nightly
 arch:
     - amd64
-    - arm64
-    - ppc64le
+    - arm64-graviton2
+virt: lxd
+group: edge
 cache:
     directories:
         - /home/travis/.rustup
@@ -36,9 +37,28 @@ matrix:
           install:
               - rustup component add clippy; true
           script: cargo clippy -- -D warnings
+        - name: Clippy
+          arch: arm64-graviton2
+          virt: lxd
+          group: edge
+          rust: stable
+          env: CLIPPY=1
+          install:
+              - rustup component add clippy; true
+          script: cargo clippy -- -D warnings
 
         - name: Coveralls
           arch: amd64
+          rust: nightly
+          install:
+              - cargo install cargo-tarpaulin; true
+          script: |
+              cargo tarpaulin --ignore-tests --run-types Tests --run-types Doctests \
+              --exclude-files 'fuzz/*' --coveralls $TRAVIS_JOB_ID --ciserver travis-ci
+        - name: Coveralls
+          arch: arm64-graviton2
+          virt: lxd
+          group: edge
           rust: nightly
           install:
               - cargo install cargo-tarpaulin; true
